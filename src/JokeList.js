@@ -3,20 +3,21 @@ import axios from "axios";
 import Joke from "./Joke";
 import "./JokeList.css";
 
-const JokeList = () => {
-  const numJokesToGet = 5;
+/** List of jokes. */
+
+function JokeList({ numJokesToGet = 5 }) {
   const [jokes, setJokes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    getJokes().then((newJokes) => {
-      setJokes(newJokes);
-      setIsLoading(false);
-    });
+    getJokes();
   }, []);
 
-  const getJokes = async () => {
+  /* retrieve jokes from API */
+
+  async function getJokes() {
     try {
+      // load jokes one at a time, adding not-yet-seen jokes
       let newJokes = [];
       let seenJokes = new Set();
 
@@ -28,74 +29,46 @@ const JokeList = () => {
 
         if (!seenJokes.has(joke.id)) {
           seenJokes.add(joke.id);
-          newJokes.push({ ...joke, votes: 0, locked: false });
+          newJokes.push({ ...joke, votes: 0 });
         } else {
           console.log("duplicate found!");
         }
       }
 
-      return newJokes;
+      setJokes(newJokes);
+      setIsLoading(false);
     } catch (err) {
       console.error(err);
-      return [];
     }
-  };
+  }
 
-  const generateNewJokes = () => {
+  /* empty joke list, set to loading state, and then call getJokes */
+
+  function generateNewJokes() {
     setIsLoading(true);
+    getJokes();
+  }
 
-    // Filter out locked jokes and keep them
-    const lockedJokes = jokes.filter((joke) => joke.locked);
+  /* change vote for this id by delta (+1 or -1) */
 
-    // Fetch new jokes to replace the unlocked ones
-    getJokes().then((newJokes) => {
-      const updatedJokes = [...lockedJokes, ...newJokes];
-      setJokes(updatedJokes);
-      setIsLoading(false);
-    });
-  };
-
-  const vote = (id, delta) => {
+  function vote(id, delta) {
     setJokes((prevJokes) =>
       prevJokes.map((j) =>
         j.id === id ? { ...j, votes: j.votes + delta } : j
       )
     );
-  };
+  }
 
-  const resetVotes = () => {
-    setJokes((prevJokes) =>
-      prevJokes.map((j) => ({ ...j, votes: 0 }))
+  /* render: either loading spinner or list of sorted jokes. */
+
+  let sortedJokes = [...jokes].sort((a, b) => b.votes - a.votes);
+  if (isLoading) {
+    return (
+      <div className="loading">
+        <i className="fas fa-4x fa-spinner fa-spin" />
+      </div>
     );
-    localStorage.removeItem("jokes");
-  };
-
-  const lockJoke = (id) => {
-    setJokes((prevJokes) =>
-      prevJokes.map((j) =>
-        j.id === id ? { ...j, locked: !j.locked } : j
-      )
-    );
-  };
-
-  useEffect(() => {
-    const savedJokes = JSON.parse(localStorage.getItem("jokes")) || [];
-    if (savedJokes.length === 0) {
-      getJokes().then((newJokes) => {
-        setJokes(newJokes);
-        setIsLoading(false);
-      });
-    } else {
-      setJokes(savedJokes);
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("jokes", JSON.stringify(jokes));
-  }, [jokes]);
-
-  const sortedJokes = [...jokes].sort((a, b) => b.votes - a.votes);
+  }
 
   return (
     <div className="JokeList">
@@ -103,33 +76,14 @@ const JokeList = () => {
         Get New Jokes
       </button>
 
-      <button className="JokeList-reset" onClick={resetVotes}>
-        Reset Votes
-      </button>
-
-      {isLoading ? (
-        <div className="loading">
-          <i className="fas fa-4x fa-spinner fa-spin" />
-        </div>
-      ) : (
-        sortedJokes.map((j) => (
-          <Joke
-            text={j.joke}
-            key={j.id}
-            id={j.id}
-            votes={j.votes}
-            vote={vote}
-            lock={lockJoke}
-            locked={j.locked}
-          />
-        ))
-      )}
+      {sortedJokes.map((j) => (
+        <Joke text={j.joke} key={j.id} id={j.id} votes={j.votes} vote={vote} />
+      ))}
     </div>
   );
-};
+}
 
 export default JokeList;
-
 
 
 // import React, { Component } from "react";
