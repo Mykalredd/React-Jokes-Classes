@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/React-Jokes-Classes/static/css/main.9c821204.css",
+    "main.js": "/React-Jokes-Classes/static/js/main.83c7542f.js",
+    "index.html": "/React-Jokes-Classes/index.html",
+    "main.9c821204.css.map": "/React-Jokes-Classes/static/css/main.9c821204.css.map",
+    "main.83c7542f.js.map": "/React-Jokes-Classes/static/js/main.83c7542f.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.9c821204.css",
+    "static/js/main.83c7542f.js"
+  ]
+}
